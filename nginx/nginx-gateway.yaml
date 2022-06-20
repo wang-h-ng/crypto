@@ -1,0 +1,43 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: nginx-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    hosts:
+    - "www.crypto.com"
+    tls:
+      mode: SIMPLE
+      privateKey: /etc/istio/ingressgateway-certs/tls.key
+      serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: nginx
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - nginx-gateway
+  http:
+  - match:
+    - uri:
+        exact: /index.html
+    route:
+    - destination:
+        host: nginx.default.svc.cluster.local
+        port:
+          number: 80
